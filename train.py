@@ -88,6 +88,7 @@ from tensorboardX import SummaryWriter
 from torch.optim import Adam
 
 import models
+from torch.utils.data import SequentialSampler
 
 #paths where to save log, checkpoints, images 
 LOGS_PATH = os.path.join(args.output_dir, "logs")
@@ -103,10 +104,21 @@ if not os.path.exists(CHECKPOINTS_PATH):
 if not os.path.exists(SAVED_IMAGES):
     os.makedirs(SAVED_IMAGES)
 
-
+all_rand_fin = []
 def generate_random_fingerprints(fingerprint_length, batch_size=4, size=(400, 400)):
     #2 excluded, it creates a tensor of 0 and 1 with batch_size x fingerprint_size size
+    #use the following as default (original code)
+    #z = torch.zeros((batch_size, fingerprint_length), dtype=torch.float).random_(0, 2)
+
+    #use the following three lines of code to minimize the randomness
+    #i use a seed to make the pseudo-random sequence generation everytime the same 
+    torch.manual_seed(42)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(42)
+
     z = torch.zeros((batch_size, fingerprint_length), dtype=torch.float).random_(0, 2)
+    all_rand_fin.append(z)
+
     return z
 
 
@@ -204,12 +216,28 @@ def main():
     steps_since_l2_loss_activated = -1
 
 
+
+
+
+
+
+
     #we trained encoder and decoder for the specified number of epochs
     for i_epoch in range(args.num_epochs):
+
+        #use the following ad default (original code)
+        """
         dataloader = DataLoader( #to perform the batch fetch
             dataset, batch_size=args.batch_size, shuffle=True, num_workers=16
         )
-        for images, _ in tqdm(dataloader): #generates a casual fingerprint for every batch
+        """
+        #use the following instead the above to minimize the randomization in image loading
+        #the sequentialsampler is useful to reduce the randomness in the batches construction
+        dataloader = DataLoader( #to perform the batch fetch
+            dataset, batch_size=args.batch_size, sampler=SequentialSampler(dataset), num_workers=16
+        )
+
+        for images, _ in tqdm(dataloader): #generates a casual fingerprint for every batch 
             global_step += 1
 
             batch_size = min(args.batch_size, images.size(0))
@@ -354,6 +382,7 @@ def main():
 
     writer.export_scalars_to_json("./all_scalars.json")
     writer.close()
+    print(all_rand_fin)
 
 
 if __name__ == "__main__":

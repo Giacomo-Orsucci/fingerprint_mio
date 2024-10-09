@@ -22,11 +22,13 @@ transform = transforms.Compose([
 #experimentally the accuracy that we have in this way is slightly different (+-0.005) on the total
 #if we compare it with the accuracy obtained from a set of images generated and directly analized without saving them before
 
+"""
 parser.add_argument(
     "--decoder_path",
     type=str,
     help="Provide trained StegaStamp decoder to verify fingerprint detection accuracy.",
 )
+"""
 
 parser.add_argument(
     "--image_resolution", type=int, help="Height and width of square images."
@@ -50,15 +52,39 @@ IMAGE_CHANNELS = 3
 FINGERPRINT_SIZE = len(fingerprint)
 
 
-image_directory = '/media/giacomo/hdd_ubuntu/progan_gen_50k'
+#image_directory = '/media/giacomo/hdd_ubuntu/old/celeba_fin_old_200k'
+image_directory = '/media/giacomo/hdd_ubuntu/new/stylegan2_gen_50k_config-e_10'
+dec_path_pre = '/home/giacomo/Desktop/enc_dec_pretrained_celeba/dec.pth'
+dec_path_old = '/media/giacomo/hdd_ubuntu/old/trained_byme/dec.pth'
+dec_path_new = '/media/giacomo/hdd_ubuntu/new/dec.pth'
 
-RevealNet = StegaStampDecoder( #decoder and parameters passing
+RevealNet_pre = StegaStampDecoder( #decoder and parameters passing
         IMAGE_RESOLUTION, IMAGE_CHANNELS, fingerprint_size=FINGERPRINT_SIZE
     )
-RevealNet.load_state_dict(torch.load(args.decoder_path))
-RevealNet = RevealNet.to(device)
-RevealNet.eval()
-bitwise_accuracy = 0
+RevealNet_pre.load_state_dict(torch.load(dec_path_pre))
+RevealNet_pre = RevealNet_pre.to(device)
+RevealNet_pre.eval()
+
+
+RevealNet_old = StegaStampDecoder( #decoder and parameters passing
+        IMAGE_RESOLUTION, IMAGE_CHANNELS, fingerprint_size=FINGERPRINT_SIZE
+    )
+RevealNet_old.load_state_dict(torch.load(dec_path_old))
+RevealNet_old = RevealNet_old.to(device)
+RevealNet_old.eval()
+
+
+RevealNet_new = StegaStampDecoder( #decoder and parameters passing
+        IMAGE_RESOLUTION, IMAGE_CHANNELS, fingerprint_size=FINGERPRINT_SIZE
+    )
+RevealNet_new.load_state_dict(torch.load(dec_path_new))
+RevealNet_new = RevealNet_new.to(device)
+RevealNet_new.eval()
+
+
+bitwise_accuracy_pre = 0
+bitwise_accuracy_old = 0
+bitwise_accuracy_new = 0
 
 
 j=0
@@ -66,15 +92,10 @@ for filename in os.listdir(image_directory):
     
     j = j+1
 
-   #if j==1000:
+    #if j==10:
         #break;
 
-
     print(j)
-
-
-    img_path = os.path.join(image_directory, filename)
-           
 
     img_path = os.path.join(image_directory, filename)
     image = cv2.imread(img_path, 3)
@@ -84,25 +105,39 @@ for filename in os.listdir(image_directory):
     
     print(image)
 
-    detected_fingerprints = RevealNet(image_rgb_tensor.unsqueeze(0))
+    detected_fingerprints_pre = RevealNet_pre(image_rgb_tensor.unsqueeze(0))
+    detected_fingerprints_old = RevealNet_old(image_rgb_tensor.unsqueeze(0))
+    detected_fingerprints_new = RevealNet_new(image_rgb_tensor.unsqueeze(0))
 
     #"True" if the element is > 0 and "False" otherwise
-    detected_fingerprints = (detected_fingerprints > 0).long()
+    detected_fingerprints_pre = (detected_fingerprints_pre > 0).long()
+    detected_fingerprints_old = (detected_fingerprints_old > 0).long()
+    detected_fingerprints_new = (detected_fingerprints_new > 0).long()
+    
+    
     fingerprint = (fingerprint > 0).long()
 
-    detected_fingerprints.to(device)
+    detected_fingerprints_pre.to(device)
+    detected_fingerprints_new.to(device)
+    detected_fingerprints_old.to(device)
     fingerprint.to(device)
 
-    print(fingerprint)
+    #print(fingerprint)
     
-    print(detected_fingerprints)
+    #print(detected_fingerprints_pre)
     
-    bitwise_accuracy += (detected_fingerprints == fingerprint).float().mean(dim=1).sum().item()
+    bitwise_accuracy_pre += (detected_fingerprints_pre == fingerprint).float().mean(dim=1).sum().item()
+    bitwise_accuracy_old += (detected_fingerprints_old == fingerprint).float().mean(dim=1).sum().item()
+    bitwise_accuracy_new += (detected_fingerprints_new == fingerprint).float().mean(dim=1).sum().item()
 
     
 
-bitwise_accuracy = bitwise_accuracy / (j) #compute the general accuracy
+bitwise_accuracy_pre = bitwise_accuracy_pre / (j) #compute the general accuracy
+bitwise_accuracy_old = bitwise_accuracy_old / (j) #compute the general accuracy
+bitwise_accuracy_new = bitwise_accuracy_new / (j) #compute the general accuracy
 
-print(f"Bitwise accuracy on fingerprinted images: {bitwise_accuracy}")
+print(f"Bitwise accuracy on fingerprinted images with dec_pre: {bitwise_accuracy_pre}")
+print(f"Bitwise accuracy on fingerprinted images with dec_old: {bitwise_accuracy_old}")
+print(f"Bitwise accuracy on fingerprinted images with dec_new: {bitwise_accuracy_new}")
     
 print("Successfully terminated")
