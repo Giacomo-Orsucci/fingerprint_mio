@@ -184,6 +184,17 @@ def load_data():
     dataset = CustomImageFolder(args.data_dir, transform=transform)
     print(f"Finished. Loading took {time() - s:.2f}s")
 
+# Funzione per stampare i pesi e bias di ogni layer di un modello
+def print_model_weights(model):
+    print(f"Stampa dei pesi del modello: {model.__class__.__name__}\n")
+    
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            print(f"Layer: {name}")
+            print(f"Pesi:\n{param.data}")  # Mostra i pesi del layer
+            print(f"Forma: {param.shape}\n")
+            
+
 
 def main():
     now = datetime.now()
@@ -206,6 +217,13 @@ def main():
     )
     encoder = encoder.to(device)
     decoder = decoder.to(device)
+
+
+    # Stampiamo i pesi di tutti i layer dell'encoder
+    print_model_weights(encoder)
+
+    #Stampiamo i pesi di tutti i layer del decoder
+    print_model_weights(decoder)
 
     #we have the combination of encoder and decoder to update simultaneously decoder and encoder
     decoder_encoder_optim = Adam(
