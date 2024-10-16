@@ -1,5 +1,6 @@
 import argparse
 
+
 #to get parameters inserted via CLI
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -89,6 +90,9 @@ from torch.optim import Adam
 
 import models
 from torch.utils.data import SequentialSampler
+import matplotlib.pyplot as plt
+import numpy as np
+import cv2
 
 #paths where to save log, checkpoints, images 
 LOGS_PATH = os.path.join(args.output_dir, "logs")
@@ -156,7 +160,7 @@ def load_data():
     global IMAGE_CHANNELS, IMAGE_HEIGHT, IMAGE_WIDTH, SECRET_SIZE
 
     IMAGE_RESOLUTION = args.image_resolution
-    IMAGE_CHANNELS = 3
+    IMAGE_CHANNELS = 1 #version to embed fingerprint only on luminance Y
 
     SECRET_SIZE = args.fingerprint_length
 
@@ -255,8 +259,54 @@ def main():
             dataset, batch_size=args.batch_size, sampler=SequentialSampler(dataset), num_workers=16
         )
 
+        
+        
         for images, _ in tqdm(dataloader): #generates a casual fingerprint for every batch 
             global_step += 1
+            print(images.shape)
+            
+            #to convert every image of celeba that is in rgb space color in yuv to embed the fingerprint only on the luminance y
+            
+            new_images = []
+            for image in images:
+                
+                # transpose from (3, 128, 128) to (128, 128, 3) to visualize the image properly.
+                image_rgb = np.transpose(image, (1, 2, 0))
+                #plt.imshow(image_rgb)
+                #plt.title("Test")
+                #plt.show()
+
+                image_rgb = np.array(image_rgb)
+                image_yuv =  cv2.cvtColor(image_rgb, cv2.COLOR_RGB2YUV)
+
+                # to split the image in it's Y, U and V channels
+                y_channel, u_channel, v_channel = cv2.split(image_yuv)
+
+                # setting U and V to 0 to create an image with only the Y channel
+                #u_zero = np.zeros_like(u_channel)
+                #v_zero = np.zeros_like(v_channel)
+
+                #image_y_only = cv2.merge([y_channel, u_zero, v_zero])
+
+                # conversion from YUV to RGB to visualize the image
+                #image_gray = cv2.cvtColor(image_y_only, cv2.COLOR_YUV2RGB)
+
+                y_channel_only = np.expand_dims(y_channel, axis=2) #from (128,128) to (128, 128, 1)
+
+                #plt.imshow(y_channel_only)
+                #plt.title('Immagine con solo canale Y (Luminanza)')
+                #plt.show()
+
+                image = torch.from_numpy(y_channel_only)
+                image = np.transpose(image, (2, 0, 1))
+                new_images.append(image)
+                #print(image.shape)
+
+            new_images = torch.stack(new_images)
+            images = new_images
+
+            print(images.shape)
+
 
             batch_size = min(args.batch_size, images.size(0))
             fingerprints = generate_random_fingerprints(

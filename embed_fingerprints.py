@@ -128,7 +128,7 @@ def load_models():
     global FINGERPRINT_SIZE
     
     IMAGE_RESOLUTION = args.image_resolution
-    IMAGE_CHANNELS = 3
+    IMAGE_CHANNELS = 1
 
     from models import StegaStampEncoder, StegaStampDecoder
 
@@ -182,6 +182,7 @@ def embed_fingerprints():
             fingerprints = fingerprints.to(device)
 
         images = images.to(device)
+        
 
         fingerprinted_images = HideNet(fingerprints[: images.size(0)], images)
         all_fingerprinted_images.append(fingerprinted_images.detach().cpu()) #leviamo le immagini firmate da ulteriori calcoli e le portiamo sulla CPU
