@@ -55,7 +55,8 @@ FINGERPRINT_SIZE = len(fingerprint)
 #image_directory = '/media/giacomo/hdd_ubuntu/old/celeba_fin_old_200k'
 #image_directory = '/media/giacomo/hdd_ubuntu/new/stylegan2_gen_50k_config-e_10'
 #image_directory = '/media/giacomo/hdd_ubuntu/no_rand/celeba_I_meta_enc_1_norand/fingerprinted_images'
-image_directory = '/home/giacomo/Desktop/fin1/fingerprinted_images'
+#image_directory = '/home/giacomo/Desktop/fin1/fingerprinted_images'
+image_directory = '/media/giacomo/hdd_ubuntu/no_rand/celeba_fin_norand_1'
 #dec_path_pre = '/home/giacomo/Desktop/enc_dec_pretrained_celeba/dec.pth'
 #dec_path_old = '/media/giacomo/hdd_ubuntu/old/trained_byme/dec.pth'
 #dec_path_new = '/media/giacomo/hdd_ubuntu/new/dec.pth'
@@ -64,9 +65,9 @@ image_directory = '/home/giacomo/Desktop/fin1/fingerprinted_images'
 #dec_old
 dec_path_pre = '/media/giacomo/hdd_ubuntu/old/trained_byme/dec.pth'
 #dec_norand_1
-dec_path_old = '/media/giacomo/hdd_ubuntu/no_rand/enc-dec_1/checkpoints/dec_norand_1.pth'
+dec_path_old = '/media/giacomo/hdd_ubuntu/no_rand/enc-dec_1_20/checkpoints/dec.pth'
 #dec_norand_2
-dec_path_new = '/media/giacomo/hdd_ubuntu/no_rand/enc-dec_2/checkpoints/dec_norand_2.pth'
+dec_path_new = '/media/giacomo/hdd_ubuntu/no_rand/enc-dec_2_20/checkpoints/dec.pth'
 
 RevealNet_pre = StegaStampDecoder( #decoder and parameters passing
         IMAGE_RESOLUTION, IMAGE_CHANNELS, fingerprint_size=FINGERPRINT_SIZE
