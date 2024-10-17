@@ -10,6 +10,10 @@ from torchvision.utils import save_image
 import os
 import argparse
 import cv2
+from torch.utils.data import Dataset, DataLoader
+from tqdm import tqdm
+import glob
+import PIL
 
 parser = argparse.ArgumentParser()
 
@@ -21,6 +25,29 @@ transform = transforms.Compose([
 #program to evaluate the accuracy on a set of images already generated
 #experimentally the accuracy that we have in this way is slightly different (+-0.005) on the total
 #if we compare it with the accuracy obtained from a set of images generated and directly analized without saving them before
+
+
+
+class CustomImageFolder():
+    def __init__(self, data_dir, transform=None):
+        self.data_dir = data_dir #path with the dataset for the training specified via CLI
+        self.filenames = glob.glob(os.path.join(data_dir, "*.png")) #to get all the png image's paths 
+        self.filenames.extend(glob.glob(os.path.join(data_dir, "*.jpeg"))) #to add all the jpeg images' path 
+        self.filenames.extend(glob.glob(os.path.join(data_dir, "*.jpg"))) #to add all the jpg images' path 
+        self.filenames = sorted(self.filenames) #order the file name in ascendent order
+        self.transform = transform
+
+    #return the image at the specified index
+    def __getitem__(self, idx):
+        filename = self.filenames[idx]
+        image = PIL.Image.open(filename)
+        if self.transform:
+            image = self.transform(image)
+        return image, 0
+
+    def __len__(self):
+        return len(self.filenames)
+
 
 """
 parser.add_argument(
@@ -46,28 +73,20 @@ fingerprint = torch.tensor([0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,0,1,1,1,0,1,0,1,1,1,1,
 args = parser.parse_args()
 
 IMAGE_RESOLUTION = args.image_resolution
-IMAGE_CHANNELS = 3
+IMAGE_CHANNELS = 1
 
 
 FINGERPRINT_SIZE = len(fingerprint)
 
 
-#image_directory = '/media/giacomo/hdd_ubuntu/old/celeba_fin_old_200k'
-#image_directory = '/media/giacomo/hdd_ubuntu/new/stylegan2_gen_50k_config-e_10'
-#image_directory = '/media/giacomo/hdd_ubuntu/no_rand/celeba_I_meta_enc_1_norand/fingerprinted_images'
-#image_directory = '/home/giacomo/Desktop/fin1/fingerprinted_images'
-image_directory = '/media/giacomo/hdd_ubuntu/no_rand/celeba_fin_norand_1'
-#dec_path_pre = '/home/giacomo/Desktop/enc_dec_pretrained_celeba/dec.pth'
-#dec_path_old = '/media/giacomo/hdd_ubuntu/old/trained_byme/dec.pth'
-#dec_path_new = '/media/giacomo/hdd_ubuntu/new/dec.pth'
+image_directory = '/media/giacomo/hdd_ubuntu/test_yuv/test_celeab/fingerprinted_images'
 
-#trio used to test the fingerprinted celeba with enc_norand_1
-#dec_old
-dec_path_pre = '/media/giacomo/hdd_ubuntu/old/trained_byme/dec.pth'
-#dec_norand_1
-dec_path_old = '/media/giacomo/hdd_ubuntu/no_rand/enc-dec_1_20/checkpoints/dec.pth'
-#dec_norand_2
-dec_path_new = '/media/giacomo/hdd_ubuntu/no_rand/enc-dec_2_20/checkpoints/dec.pth'
+#the program is thought to make comparison beetwen different decoder and
+#fingerprinted datasets, but for the moment is not necessary this comparison
+
+dec_path_pre = '/media/giacomo/hdd_ubuntu/test_yuv/primo/checkpoints/dec.pth'
+dec_path_old = '/media/giacomo/hdd_ubuntu/test_yuv/primo/checkpoints/dec.pth'
+dec_path_new = '/media/giacomo/hdd_ubuntu/test_yuv/primo/checkpoints/dec.pth'
 
 RevealNet_pre = StegaStampDecoder( #decoder and parameters passing
         IMAGE_RESOLUTION, IMAGE_CHANNELS, fingerprint_size=FINGERPRINT_SIZE
@@ -97,58 +116,55 @@ bitwise_accuracy_pre = 0
 bitwise_accuracy_old = 0
 bitwise_accuracy_new = 0
 
+bitwise_accuracy = 0;
 
-j=0
-for filename in os.listdir(image_directory):
+
+dataset = CustomImageFolder(image_directory, transform=transform)
+dataloader = DataLoader(dataset, batch_size=64, shuffle=False, num_workers=0)
+
+
+y_channel_list = []
+for images, _ in tqdm(dataloader):
+    #print(images.shape)
+
+    for i, image in enumerate(images):
+        image = image.permute(1, 2, 0).cpu().numpy()
+        #print(image)
+        #image = (image * 255).astype(np.uint8)
+
+        # Converti l'immagine RGB in YUV usando OpenCV
+        image_yuv = cv2.cvtColor(image, cv2.COLOR_RGB2YUV)
+        #print(image_yuv)
+        y_channel, u_channel, v_channel = cv2.split(image)
+        image = y_channel
+        image = torch.from_numpy(image).unsqueeze(0)
+        #print("shape di image")
+        #print(image.shape)
+
+        
+        y_channel_list.append(image)
     
-    j = j+1
+    images_y_batch = torch.stack(y_channel_list).to(device)
 
-    #if j==10:
-        #break;
 
-    print(j)
+    #print("shape di batch")
+    #print(images_y_batch.shape)
 
-    img_path = os.path.join(image_directory, filename)
-    image = cv2.imread(img_path, 3)
-    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) #to convert in rgb
-    image_rgb_array = np.array(image_rgb) #to convert in array
-    image_rgb_tensor = torch.from_numpy(image_rgb_array).permute(2, 0, 1).float().to(device) #to convert in tensor
+
+    detected_fingerprints = RevealNet_pre(images_y_batch)
+    detected_fingerprints = (detected_fingerprints > 0).long()
+
+    #print("detected fingerprint")
+    #print(detected_fingerprints.shape)
+            
+    i=0
+    for fingerprint in detected_fingerprints:
+        i+=1
+        #print(fingerprint)
+        #to calculate the accuracy in retrieving the fingerprint (eventually perturbated)
+        bitwise_accuracy += (detected_fingerprints[1].detach() == fingerprint).float().mean(dim=0).sum().item()
+
+   
     
-    print(image)
-
-    detected_fingerprints_pre = RevealNet_pre(image_rgb_tensor.unsqueeze(0))
-    detected_fingerprints_old = RevealNet_old(image_rgb_tensor.unsqueeze(0))
-    detected_fingerprints_new = RevealNet_new(image_rgb_tensor.unsqueeze(0))
-
-    #"True" if the element is > 0 and "False" otherwise
-    detected_fingerprints_pre = (detected_fingerprints_pre > 0).long()
-    detected_fingerprints_old = (detected_fingerprints_old > 0).long()
-    detected_fingerprints_new = (detected_fingerprints_new > 0).long()
-    
-    
-    fingerprint = (fingerprint > 0).long()
-
-    detected_fingerprints_pre.to(device)
-    detected_fingerprints_new.to(device)
-    detected_fingerprints_old.to(device)
-    fingerprint.to(device)
-
-    #print(fingerprint)
-    
-    #print(detected_fingerprints_pre)
-    
-    bitwise_accuracy_pre += (detected_fingerprints_pre == fingerprint).float().mean(dim=1).sum().item()
-    bitwise_accuracy_old += (detected_fingerprints_old == fingerprint).float().mean(dim=1).sum().item()
-    bitwise_accuracy_new += (detected_fingerprints_new == fingerprint).float().mean(dim=1).sum().item()
-
-    
-
-bitwise_accuracy_pre = bitwise_accuracy_pre / (j) #compute the general accuracy
-bitwise_accuracy_old = bitwise_accuracy_old / (j) #compute the general accuracy
-bitwise_accuracy_new = bitwise_accuracy_new / (j) #compute the general accuracy
-
-print(f"Bitwise accuracy on fingerprinted images with dec_pre: {bitwise_accuracy_pre}")
-print(f"Bitwise accuracy on fingerprinted images with dec_old: {bitwise_accuracy_old}")
-print(f"Bitwise accuracy on fingerprinted images with dec_new: {bitwise_accuracy_new}")
-    
-print("Successfully terminated")
+print(i)
+print(bitwise_accuracy/i)

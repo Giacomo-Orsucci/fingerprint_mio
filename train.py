@@ -263,7 +263,7 @@ def main():
         
         for images, _ in tqdm(dataloader): #generates a casual fingerprint for every batch 
             global_step += 1
-            print(images.shape)
+            #print(images.shape)
             
             #to convert every image of celeba that is in rgb space color in yuv to embed the fingerprint only on the luminance y
             
@@ -305,7 +305,7 @@ def main():
             new_images = torch.stack(new_images)
             images = new_images
 
-            print(images.shape)
+            #print(images.shape)
 
 
             batch_size = min(args.batch_size, images.size(0))

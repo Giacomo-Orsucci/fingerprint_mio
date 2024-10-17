@@ -6,10 +6,6 @@ import matplotlib.pyplot as plt
 
 image_directory = '/media/giacomo/hdd_ubuntu/dataset_celeba/img_celeba'
 
-# Carica tutte le immagini nel dataset (modifica il percorso secondo necessità)
-image_paths = glob.glob('path_to_images/*.jpg')
-
-
 j = 0
 # Ciclo per convertire ogni immagine
 for filename in os.listdir(image_directory):
