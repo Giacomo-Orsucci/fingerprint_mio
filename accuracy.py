@@ -79,7 +79,8 @@ IMAGE_CHANNELS = 1
 FINGERPRINT_SIZE = len(fingerprint)
 
 
-image_directory = '/media/giacomo/hdd_ubuntu/test_yuv/test_celeab/fingerprinted_images'
+image_directory = '/media/giacomo/hdd_ubuntu/test_yuv/celeba'
+#image_directory='/media/giacomo/hdd_ubuntu/test_yuv/test_celeab/fingerprinted_images'
 
 #the program is thought to make comparison beetwen different decoder and
 #fingerprinted datasets, but for the moment is not necessary this comparison
@@ -120,12 +121,14 @@ bitwise_accuracy = 0;
 
 
 dataset = CustomImageFolder(image_directory, transform=transform)
-dataloader = DataLoader(dataset, batch_size=64, shuffle=False, num_workers=0)
+dataloader = DataLoader(dataset, batch_size=16, shuffle=False, num_workers=0)
 
 
-y_channel_list = []
+
+j=0
 for images, _ in tqdm(dataloader):
     #print(images.shape)
+    y_channel_list = []
 
     for i, image in enumerate(images):
         image = image.permute(1, 2, 0).cpu().numpy()
@@ -157,14 +160,14 @@ for images, _ in tqdm(dataloader):
     #print("detected fingerprint")
     #print(detected_fingerprints.shape)
             
-    i=0
-    for fingerprint in detected_fingerprints:
-        i+=1
-        #print(fingerprint)
+    
+    for i in enumerate(detected_fingerprints):
+        j = j + 1
         #to calculate the accuracy in retrieving the fingerprint (eventually perturbated)
-        bitwise_accuracy += (detected_fingerprints[1].detach() == fingerprint).float().mean(dim=0).sum().item()
+        bitwise_accuracy += (detected_fingerprints[i].detach() == fingerprint).float().mean().sum().item()
+        #print(bitwise_accuracy)
 
    
     
-print(i)
-print(bitwise_accuracy/i)
+print(j)
+print(bitwise_accuracy/j)

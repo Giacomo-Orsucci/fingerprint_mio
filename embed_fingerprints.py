@@ -75,6 +75,9 @@ if int(args.cuda) == -1:
     device = torch.device("cpu")
 else:
     device = torch.device("cuda:0")
+
+torch.cuda.empty_cache()
+
     
 print("Device used: ")
 print(device)
@@ -249,8 +252,8 @@ def embed_fingerprints():
         
         fingerprinted_images = HideNet(fingerprints[: images.size(0)], images) #fingerprinted on luminance (y)
 
-        print("shape")
-        print(fingerprinted_images.shape)
+        #print("shape")
+        #print(fingerprinted_images.shape)
         
 
         if args.check:
@@ -261,8 +264,8 @@ def embed_fingerprints():
             bitwise_accuracy += (detected_fingerprints[: images.size(0)].detach() == fingerprints[: images.size(0)]).float().mean(dim=1).sum().item()
 
 
-        print("Dim di fingerprinted_images")
-        print(fingerprinted_images.shape)
+        #print("Dim di fingerprinted_images")
+        #print(fingerprinted_images.shape)
        
         
         
@@ -289,9 +292,9 @@ def embed_fingerprints():
 
 
 
-            print(fin_image.shape)
-            print(u_app.shape)
-            print(v_app.shape)
+            #print(fin_image.shape)
+            #print(u_app.shape)
+            #print(v_app.shape)
             
             final_image = np.concatenate((fin_image, u_app, v_app),2)
             #final_image = torch.cat((fin_image, u_app.to(device), v_app.to(device)), dim=2)
@@ -330,12 +333,12 @@ def embed_fingerprints():
             #new_fingerprinted_images = torch.tensor(new_fingerprinted_images).to(device)
 
         #fingerprinted_images = new_fingerprinted_images
-        print("Dimensioni vettore finale")
-        print(fingerprinted_images.shape)
+        #print("Dimensioni vettore finale")
+        #print(fingerprinted_images.shape)
         fingerprinted_images = new_fingerprinted_images
 
 
-        all_fingerprinted_images.append(fingerprinted_images) 
+        all_fingerprinted_images.append(fingerprinted_images.detach().cpu()) 
         all_fingerprints.append(fingerprints[: images.size(0)].detach().cpu())
 
 
