@@ -64,10 +64,11 @@ parser.add_argument(
 #Set the device
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
+
 fingerprint = torch.tensor([0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,0,1,1,1,0,1,0,1,1,1,1,1,1,1,1,0,0,1,1,1,
                             0,1,0,0,0,0,0,1,1,1,1,1,0,1,1,0,1,0,1,0,1,1,0,0,0,0,0,0,0,0,1,1,0,1,1,1,1,
                             0,1,0,1,1,1,0,1,0,1,0,1,0,0,1,0,1,1,1,1,1,1,1,1,1,1,1,0]).to(device) #embedded fingerprint
-
+                            
 
 
 args = parser.parse_args()
@@ -79,15 +80,16 @@ IMAGE_CHANNELS = 1
 FINGERPRINT_SIZE = len(fingerprint)
 
 
-image_directory = '/media/giacomo/hdd_ubuntu/test_yuv/celeba'
+#image_directory = '/media/giacomo/hdd_ubuntu/test_yuv/celeba'
 #image_directory='/media/giacomo/hdd_ubuntu/test_yuv/test_celeab/fingerprinted_images'
+image_directory='/media/giacomo/volume/test_yuv/stylegan2_gen_50k_config-e_25'
 
 #the program is thought to make comparison beetwen different decoder and
 #fingerprinted datasets, but for the moment is not necessary this comparison
 
-dec_path_pre = '/media/giacomo/hdd_ubuntu/test_yuv/primo/checkpoints/dec.pth'
-dec_path_old = '/media/giacomo/hdd_ubuntu/test_yuv/primo/checkpoints/dec.pth'
-dec_path_new = '/media/giacomo/hdd_ubuntu/test_yuv/primo/checkpoints/dec.pth'
+dec_path_pre = '/media/giacomo/volume/test_yuv/primo/checkpoints/dec.pth'
+#dec_path_old = '/media/giacomo/volume/test_yuv/primo/checkpoints/dec.pth'
+#dec_path_new = '/media/giacomo/volume/test_yuv/primo/checkpoints/dec.pth'
 
 RevealNet_pre = StegaStampDecoder( #decoder and parameters passing
         IMAGE_RESOLUTION, IMAGE_CHANNELS, fingerprint_size=FINGERPRINT_SIZE
@@ -96,7 +98,7 @@ RevealNet_pre.load_state_dict(torch.load(dec_path_pre))
 RevealNet_pre = RevealNet_pre.to(device)
 RevealNet_pre.eval()
 
-
+"""
 RevealNet_old = StegaStampDecoder( #decoder and parameters passing
         IMAGE_RESOLUTION, IMAGE_CHANNELS, fingerprint_size=FINGERPRINT_SIZE
     )
@@ -116,6 +118,7 @@ RevealNet_new.eval()
 bitwise_accuracy_pre = 0
 bitwise_accuracy_old = 0
 bitwise_accuracy_new = 0
+"""
 
 bitwise_accuracy = 0;
 
