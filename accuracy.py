@@ -82,7 +82,8 @@ FINGERPRINT_SIZE = len(fingerprint)
 
 #image_directory = '/media/giacomo/hdd_ubuntu/test_yuv/celeba'
 #image_directory='/media/giacomo/hdd_ubuntu/test_yuv/test_celeab/fingerprinted_images'
-image_directory='/media/giacomo/volume/test_yuv/stylegan2_gen_50k_config-e_25'
+#image_directory='/media/giacomo/volume/test_yuv/stylegan2_gen_50k_config-e_25'
+image_directory='/media/giacomo/volume/test_yuv/robustness/gau_noise_std_0-100_style2_25_50k/0'
 
 #the program is thought to make comparison beetwen different decoder and
 #fingerprinted datasets, but for the moment is not necessary this comparison
@@ -124,7 +125,7 @@ bitwise_accuracy = 0;
 
 
 dataset = CustomImageFolder(image_directory, transform=transform)
-dataloader = DataLoader(dataset, batch_size=16, shuffle=False, num_workers=0)
+dataloader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=0)
 
 
 
@@ -133,9 +134,10 @@ for images, _ in tqdm(dataloader):
     #print(images.shape)
     y_channel_list = []
 
-    for i, image in enumerate(images):
+    for image in images:
         image = image.permute(1, 2, 0).cpu().numpy()
-        #print(image)
+        print("Singola immagine")
+        print(image.shape)
         #image = (image * 255).astype(np.uint8)
 
         # Converti l'immagine RGB in YUV usando OpenCV
@@ -144,8 +146,8 @@ for images, _ in tqdm(dataloader):
         y_channel, u_channel, v_channel = cv2.split(image)
         image = y_channel
         image = torch.from_numpy(image).unsqueeze(0)
-        #print("shape di image")
-        #print(image.shape)
+        print("shape di image")
+        print(image.shape)
 
         
         y_channel_list.append(image)
@@ -153,15 +155,16 @@ for images, _ in tqdm(dataloader):
     images_y_batch = torch.stack(y_channel_list).to(device)
 
 
-    #print("shape di batch")
-    #print(images_y_batch.shape)
+    print("shape di batch")
+    print(images_y_batch.shape)
 
 
     detected_fingerprints = RevealNet_pre(images_y_batch)
     detected_fingerprints = (detected_fingerprints > 0).long()
 
-    #print("detected fingerprint")
-    #print(detected_fingerprints.shape)
+    print("detected fingerprint")
+    print(detected_fingerprints.shape)
+    print(detected_fingerprints[0])
             
     
     for i in enumerate(detected_fingerprints):
