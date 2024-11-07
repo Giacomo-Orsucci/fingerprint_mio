@@ -56,6 +56,8 @@ from torchvision.utils import save_image
 
 def generate_random_fingerprints(fingerprint_size, batch_size=4):
     #2 excluded, it creates a tensor of 0 and 1 with batch_size x fingerprint_size size
+    #torch.manual_seed(64) #imposed only to experiment different fingerprints with same pair enc/dec
+    torch.manual_seed(75)
     z = torch.zeros((batch_size, fingerprint_size), dtype=torch.float).random_(0, 2)
     return z
 
@@ -94,7 +96,7 @@ class CustomImageFolder(Dataset):
         return len(self.filenames)
 
 #to load the dataset
-#applies all the preprocessing needed by celebA, if we are using it has dataset
+#applies all the preprocessing needed by celebA, if we are using it as dataset
 def load_data():
     global dataset, dataloader
 
