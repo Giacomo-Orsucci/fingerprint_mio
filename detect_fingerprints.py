@@ -1,6 +1,7 @@
 import argparse
 import glob
 import PIL
+import cv2
 
 #to get parameters inserted via CLI
 
@@ -44,6 +45,7 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision.utils import save_image
 from torchvision.datasets import ImageFolder
 from torchvision import transforms
+import numpy as np
 
 if args.cuda != -1:
     device = torch.device("cuda:0")
@@ -80,7 +82,7 @@ def load_decoder():
     state_dict = torch.load(args.decoder_path)
     FINGERPRINT_SIZE = state_dict["dense.2.weight"].shape[0]
 
-    RevealNet = StegaStampDecoder(args.image_resolution, 3, FINGERPRINT_SIZE)
+    RevealNet = StegaStampDecoder(args.image_resolution, 1, FINGERPRINT_SIZE)
     kwargs = {"map_location": "cpu"} if args.cuda == -1 else {}
     RevealNet.load_state_dict(torch.load(args.decoder_path, **kwargs))
     RevealNet = RevealNet.to(device)
@@ -109,7 +111,29 @@ def extract_fingerprints():
 
     for images, _ in tqdm(dataloader):
         images = images.to(device)
+        print("shape di images")
+        print(images.shape)
 
+        app = []
+        for image in images:
+            image = image.to(device)
+            image = image.permute(1, 2, 0).cpu().numpy() 
+            image = (image * 255).astype(np.uint8)
+
+            yuv_image = cv2.cvtColor(image, cv2.COLOR_RGB2YUV)
+
+            # Estrai il canale Y
+            y_channel, _, _ = cv2.split(yuv_image)
+            y_tensor = torch.from_numpy(y_channel).unsqueeze(0).float()
+            y_tensor = y_tensor / 255.0 
+            app.append(y_tensor)
+
+       
+        images_y_batch = torch.stack(app).to(device)
+        print("Size di batch")
+        print(images_y_batch.shape)
+        images = images_y_batch
+        
         fingerprints = RevealNet(images)
         fingerprints = (fingerprints > 0).long()
 
