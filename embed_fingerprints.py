@@ -60,8 +60,8 @@ from torchvision.utils import save_image
 
 def generate_random_fingerprints(fingerprint_size, batch_size=4):
     #2 excluded, it creates a tensor of 0 and 1 with batch_size x fingerprint_size size
-    #I didn't fix a seed because I'm always fingerprinting with the same fingerprints
-    #and it starts always with the same
+    
+    torch.manual_seed(75) #to fix the fingerprint
     z = torch.zeros((batch_size, fingerprint_size), dtype=torch.float).random_(0, 2)
     return z
 
@@ -168,7 +168,7 @@ def embed_fingerprints():
     all_fingerprints = []
 
     print("Fingerprinting the images...")
-    torch.manual_seed(args.seed)
+    torch.manual_seed(75)
 
     #generate identical fingerprints
     fingerprints = generate_random_fingerprints(FINGERPRINT_SIZE, 1)
@@ -178,7 +178,7 @@ def embed_fingerprints():
 
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
 
-    torch.manual_seed(args.seed) 
+    torch.manual_seed(75) 
 
     bitwise_accuracy = 0
 
