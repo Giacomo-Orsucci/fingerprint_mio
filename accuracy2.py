@@ -64,16 +64,16 @@ parser.add_argument(
 #Set the device
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-"""
+
 fingerprint = torch.tensor([0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,0,1,1,1,0,1,0,1,1,1,1,1,1,1,1,0,0,1,1,1,
                             0,1,0,0,0,0,0,1,1,1,1,1,0,1,1,0,1,0,1,0,1,1,0,0,0,0,0,0,0,0,1,1,0,1,1,1,1,
                             0,1,0,1,1,1,0,1,0,1,0,1,0,0,1,0,1,1,1,1,1,1,1,1,1,1,1,0]).to(device) #embedded fingerprint with seed 42
-    """                  
-
+                    
+"""
 fingerprint = torch.tensor([0,1,0,1,0,0,0,0,1,1,0,0,1,0,0,0,0,0,1,0,0,1,1,0,0,1,0,1,0,1,0,1,0,1,1,0,0,
                             0,0,0,1,1,1,0,1,1,1,0,1,0,1,1,1,0,0,0,1,0,1,1,0,0,0,1,0,1,1,1,0,1,1,1,0,1,
                             0,1,0,0,1,0,1,1,0,0,0,1,1,0,0,0,0,0,0,1,0,1,1,1,1,0]).to(device) #embedded fingerprint with seed 49
-                         
+      """                     
 
 """
 fingerprint = torch.tensor([0,0,1,1,0,0,0,0,0,1,0,1,1,1,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,
@@ -91,10 +91,14 @@ FINGERPRINT_SIZE = len(fingerprint)
 
 #image_directory = '/media/giacomo/hdd_ubuntu/test_yuv/celeba'
 #image_directory='/media/giacomo/hdd_ubuntu/test_yuv/test_celeab/fingerprinted_images'
-#image_directory='/media/giacomo/volume/test_yuv/stylegan2_gen_50k_config-e_25'
+#image_directory='/media/giacomo/volume/test_yuv/test'
 #image_directory='/media/giacomo/volume/test_yuv/robustness/gau_noise_std_0-100_style2_25_50k/0'
-#image_directory='/media/giacomo/volume/yuv_base/prova_42_dataset'
-image_directory='/media/giacomo/volume/yuv_base/stylegan2_gen_50k_config-e_25_seed49'
+#image_directory='/media/giacomo/volume/yuv_base/test'
+#image_directory='/media/giacomo/volume/yuv_base/stylegan2_gen_50k_config-e_25_seed49'
+image_directory='/media/giacomo/volume/yuv_base/prova_42_dataset'
+#image_directory='/media/giacomo/volume/yuv_base/test'
+#image_directory='/media/giacomo/volume/test_yuv/test_a'
+#image_directory='/media/giacomo/volume/yuv_base/test_fin_42'
 
 #the program is thought to make comparison beetwen different decoder and
 #fingerprinted datasets, but for the moment is not necessary this comparison
@@ -111,6 +115,27 @@ RevealNet_pre.load_state_dict(torch.load(dec_path_pre))
 RevealNet_pre = RevealNet_pre.to(device)
 RevealNet_pre.eval()
 
+"""
+RevealNet_old = StegaStampDecoder( #decoder and parameters passing
+        IMAGE_RESOLUTION, IMAGE_CHANNELS, fingerprint_size=FINGERPRINT_SIZE
+    )
+RevealNet_old.load_state_dict(torch.load(dec_path_old))
+RevealNet_old = RevealNet_old.to(device)
+RevealNet_old.eval()
+
+
+RevealNet_new = StegaStampDecoder( #decoder and parameters passing
+        IMAGE_RESOLUTION, IMAGE_CHANNELS, fingerprint_size=FINGERPRINT_SIZE
+    )
+RevealNet_new.load_state_dict(torch.load(dec_path_new))
+RevealNet_new = RevealNet_new.to(device)
+RevealNet_new.eval()
+
+
+bitwise_accuracy_pre = 0
+bitwise_accuracy_old = 0
+bitwise_accuracy_new = 0
+"""
 
 bitwise_accuracy = 0;
 
@@ -118,54 +143,63 @@ bitwise_accuracy = 0;
 dataset = CustomImageFolder(image_directory, transform=transform)
 dataloader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=0)
 
+# Funzione di conversione RGB → YUV
+def rgb_to_y(rgb_image):
+    # Normalizza i valori dell'immagine RGB nell'intervallo [0, 1]
+    rgb_image = rgb_image 
+
+    # Estrai i canali R, G, B
+    R = rgb_image[:, :, 0]
+    G = rgb_image[:, :, 1]
+    B = rgb_image[:, :, 2]
+
+    # Calcola solo il canale Y
+    Y = 0.299 * R + 0.587 * G + 0.114 * B
+
+    return Y
+
+
 
 j=0
-for filename in os.listdir(image_directory):
-    
-    j = j+1
+for images, _ in tqdm(dataloader):
+    #print(images.shape)
+   
 
-    #if j==10:
-        #break;
+    for image in images:
+        image = image.permute(1, 2, 0).cpu().numpy()
+        print("Singola immagine")
+        print(image.shape)
+        #image = (image * 255).astype(np.uint8)
 
-    print(j)
+        # Converti l'immagine RGB in YUV usando OpenCV
+        image_y = rgb_to_y(image)
+        
+        print("image_y")
+        print(image_y.shape)
+      
+        
 
-    img_path = os.path.join(image_directory, filename)
-    image = cv2.imread(img_path, 3)
-    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) #to convert in rgb
-    image_yuv = cv2.cvtColor(image, cv2.COLOR_BGR2YUV) #to convert in rgb
-    y_channel, u_channel, v_channel = cv2.split(image_yuv)
-    y_channel = torch.from_numpy(y_channel).float()
-    y_channel_list = []
-    y_channel_list.append(y_channel)
+    detected_fingerprints = RevealNet_pre(torch.tensor(image_y).unsqueeze(0).unsqueeze(0).float().to(device))
+    
 
-    images_y_batch = torch.stack(y_channel_list).to(device)
-    
-    
-    
-    print("Dimensione y")
-    print(y_channel.shape)
+    print("detected fingerprint")
+    print(detected_fingerprints.shape)
+    print(detected_fingerprints[0])
 
-    detected_fingerprints_pre = RevealNet_pre(images_y_batch.unsqueeze(0))
+    detected_fingerprints = (detected_fingerprints > 0).long()
+
+    print("detected fingerprint")
+    print(detected_fingerprints.shape)
+    print(detected_fingerprints[0])
+            
     
-    #"True" if the element is > 0 and "False" otherwise
-    detected_fingerprints_pre = (detected_fingerprints_pre > 0).long()
+    for i in enumerate(detected_fingerprints):
+        j = j + 1
+        #to calculate the accuracy in retrieving the fingerprint (eventually perturbated)
+        bitwise_accuracy += (detected_fingerprints[i].detach() == fingerprint).float().mean().sum().item()
+        #print(bitwise_accuracy)
+
    
     
-    fingerprint = (fingerprint > 0).long()
-
-    detected_fingerprints_pre.to(device)
-   
-    fingerprint.to(device)
-
-    #print(fingerprint)
-    
-    #print(detected_fingerprints_pre)
-    
-    bitwise_accuracy += (detected_fingerprints_pre == fingerprint).float().mean(dim=1).sum().item()
-    
-
-bitwise_accuracy_pre = bitwise_accuracy / (j) #compute the general accuracy
-
- 
 print(j)
 print(bitwise_accuracy/j)

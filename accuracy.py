@@ -68,12 +68,12 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 fingerprint = torch.tensor([0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,0,1,1,1,0,1,0,1,1,1,1,1,1,1,1,0,0,1,1,1,
                             0,1,0,0,0,0,0,1,1,1,1,1,0,1,1,0,1,0,1,0,1,1,0,0,0,0,0,0,0,0,1,1,0,1,1,1,1,
                             0,1,0,1,1,1,0,1,0,1,0,1,0,0,1,0,1,1,1,1,1,1,1,1,1,1,1,0]).to(device) #embedded fingerprint with seed 42
-                      
+                    
 """
 fingerprint = torch.tensor([0,1,0,1,0,0,0,0,1,1,0,0,1,0,0,0,0,0,1,0,0,1,1,0,0,1,0,1,0,1,0,1,0,1,1,0,0,
                             0,0,0,1,1,1,0,1,1,1,0,1,0,1,1,1,0,0,0,1,0,1,1,0,0,0,1,0,1,1,1,0,1,1,1,0,1,
                             0,1,0,0,1,0,1,1,0,0,0,1,1,0,0,0,0,0,0,1,0,1,1,1,1,0]).to(device) #embedded fingerprint with seed 49
-   """                         
+      """                     
 
 """
 fingerprint = torch.tensor([0,0,1,1,0,0,0,0,0,1,0,1,1,1,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,
@@ -91,16 +91,22 @@ FINGERPRINT_SIZE = len(fingerprint)
 
 #image_directory = '/media/giacomo/hdd_ubuntu/test_yuv/celeba'
 #image_directory='/media/giacomo/hdd_ubuntu/test_yuv/test_celeab/fingerprinted_images'
-image_directory='/media/giacomo/volume/test_yuv/test_a'
+#image_directory='/media/giacomo/volume/test_yuv/test'
 #image_directory='/media/giacomo/volume/test_yuv/robustness/gau_noise_std_0-100_style2_25_50k/0'
-#image_directory='/media/giacomo/volume/yuv_base/prova_42_dataset'
+#image_directory='/media/giacomo/volume/yuv_base/test'
 #image_directory='/media/giacomo/volume/yuv_base/stylegan2_gen_50k_config-e_25_seed49'
+#image_directory='/media/giacomo/volume/yuv_base/prova_42_dataset'
+#image_directory='/media/giacomo/volume/yuv_base/test_fin_42'
+#image_directory='/media/giacomo/volume/test_yuv/test_a'
+#image_directory='/media/giacomo/volume/yuv_base/test_fin_75'
+image_directory='/media/giacomo/volume/yuv_base/stylegan2_gen_50k_config-e_75_seed42'
+
 
 #the program is thought to make comparison beetwen different decoder and
 #fingerprinted datasets, but for the moment is not necessary this comparison
 
-dec_path_pre = '/media/giacomo/volume/test_yuv/primo/checkpoints/dec.pth'
-#dec_path_pre = '/media/giacomo/volume/yuv_base/enc-dec/checkpoints/dec.pth'
+#dec_path_pre = '/media/giacomo/volume/test_yuv/primo/checkpoints/dec.pth'
+dec_path_pre = '/media/giacomo/volume/yuv_base/enc-dec/checkpoints/dec.pth'
 #dec_path_old = '/media/giacomo/volume/test_yuv/primo/checkpoints/dec.pth'
 #dec_path_new = '/media/giacomo/volume/test_yuv/primo/checkpoints/dec.pth'
 

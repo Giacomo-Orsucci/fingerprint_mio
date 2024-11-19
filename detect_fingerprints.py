@@ -118,14 +118,13 @@ def extract_fingerprints():
         for image in images:
             image = image.to(device)
             image = image.permute(1, 2, 0).cpu().numpy() 
-            image = (image * 255).astype(np.uint8)
+            
 
             yuv_image = cv2.cvtColor(image, cv2.COLOR_RGB2YUV)
 
             # Estrai il canale Y
             y_channel, _, _ = cv2.split(yuv_image)
             y_tensor = torch.from_numpy(y_channel).unsqueeze(0).float()
-            y_tensor = y_tensor / 255.0 
             app.append(y_tensor)
 
        
