@@ -111,10 +111,10 @@ def generate_random_fingerprints(fingerprint_length, batch_size=4, size=(400, 40
     #z = torch.zeros((batch_size, fingerprint_length), dtype=torch.float).random_(0, 2)
 
     #use the following three lines of code to minimize the randomness
-    #i use a seed to make the pseudo-random sequence generation everytime the same 
-    torch.manual_seed(42)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed(42)
+    #I use a seed to make the pseudo-random sequence generation the same for every batch
+    #torch.manual_seed(42)
+    #if torch.cuda.is_available():
+        #torch.cuda.manual_seed(42)
 
     z = torch.zeros((batch_size, fingerprint_length), dtype=torch.float).random_(0, 2)
     all_rand_fin.append(z)
@@ -244,17 +244,18 @@ def main():
     for i_epoch in range(args.num_epochs):
 
         #use the following ad default (original code)
-        """
+        
         dataloader = DataLoader( #to perform the batch fetch
             dataset, batch_size=args.batch_size, shuffle=True, num_workers=16
         )
         """
-        #use the following instead the above to minimize the randomization in image loading
+        #use the following to minimize the randomization in image loading
         #the sequentialsampler is useful to reduce the randomness in the batches construction
         dataloader = DataLoader( #to perform the batch fetch
             dataset, batch_size=args.batch_size, sampler=SequentialSampler(dataset), num_workers=16
         )
-
+        """
+        
         for images, _ in tqdm(dataloader): #generates a casual fingerprint for every batch 
             global_step += 1
 
@@ -400,7 +401,49 @@ def main():
 
     writer.export_scalars_to_json("./all_scalars.json")
     writer.close()
-    print(all_rand_fin)
+    print("numero di tutte le firme")
+    print(all_rand_fin.shape)
+
+    
+    ok_check = False
+    seed = 0
+    while(ok_check==False):
+        seed += 1
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed(seed)
+
+        z = torch.zeros((1, 100), dtype=torch.float).random_(0, 2)
+
+
+        for fin in all_rand_fin:
+            if fin == z:
+                print("Seed in fin")
+                print(seed)
+                ok_check = True
+
+
+    ok_check = True
+    seed = 0
+    while(ok_check==True):
+        seed += 1
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed(seed)
+
+        z = torch.zeros((1, 100), dtype=torch.float).random_(0, 2)
+
+        ok_check=False
+        for fin in all_rand_fin:
+            if fin == z:
+                ok_check = True  
+    print("Seed not in fin")
+    print(seed)          
+
+    
+    
+
+
 
 
 if __name__ == "__main__":

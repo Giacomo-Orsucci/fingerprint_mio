@@ -59,9 +59,9 @@ def generate_random_fingerprints(fingerprint_size, batch_size=4):
     #torch.manual_seed(64) #imposed only to experiment different fingerprints with same pair enc/dec
     #torch.manual_seed(75)
     torch.manual_seed(42)
-    #i=0
-    #for i in range(452340): #test on norand
-    z = torch.zeros((batch_size, fingerprint_size), dtype=torch.float).random_(0, 2)
+    i=0
+    for i in range(3): #test on norand
+        z = torch.zeros((batch_size, fingerprint_size), dtype=torch.float).random_(0, 2)
     return z
 
 #generate a uniform distribution

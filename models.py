@@ -6,9 +6,9 @@ from torch.nn.functional import relu, sigmoid
 
 class StegaStampEncoder(nn.Module):
 
-
-    torch.manual_seed(42)  # Seed for CPU
-    torch.cuda.manual_seed(42)  # Seed for GPU, if you use CUDA
+    #the following two to minimize the randomness
+    #torch.manual_seed(42)  # Seed for CPU
+    #torch.cuda.manual_seed(42)  # Seed for GPU, if you use CUDA
     
     def __init__( #encoder constructor (embeds the fingerprint)
         self,
