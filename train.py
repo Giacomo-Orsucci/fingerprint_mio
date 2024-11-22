@@ -401,50 +401,34 @@ def main():
 
     writer.export_scalars_to_json("./all_scalars.json")
     writer.close()
-    print("numero di tutte le firme")
-    print(all_rand_fin.shape)
-
     
-    ok_check = False
-    seed = 0
-    while(ok_check==False):
-        seed += 1
-        torch.manual_seed(seed)
-        if torch.cuda.is_available():
-            torch.cuda.manual_seed(seed)
 
-        z = torch.zeros((1, 100), dtype=torch.float).random_(0, 2)
+    """
+    #the following code is to find a fingerprint used in training and if the fin below has been seen or not
+    #in this way we can test the generalization in fingerprinting learnt by enc/dec
 
 
-        for fin in all_rand_fin:
-            if fin == z:
-                print("Seed in fin")
-                print(seed)
-                ok_check = True
-
-
-    ok_check = True
-    seed = 0
-    while(ok_check==True):
-        seed += 1
-        torch.manual_seed(seed)
-        if torch.cuda.is_available():
-            torch.cuda.manual_seed(seed)
-
-        z = torch.zeros((1, 100), dtype=torch.float).random_(0, 2)
-
-        ok_check=False
-        for fin in all_rand_fin:
-            if fin == z:
+    fingerprint = torch.tensor([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+                            1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+                            1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]) 
+    
+    
+    
+    i = -1
+    ok_check=False
+    for fins_64 in all_rand_fin:
+        for fin in fins_64:
+            i+=1
+            if i==0:  
+                torch.set_printoptions(precision=8, sci_mode=False)
+                print(fin)
+                        
+            if torch.equal(fin,fingerprint):
                 ok_check = True  
-    print("Seed not in fin")
-    print(seed)          
-
+    if ok_check == False:
+        print("fingerprint is not in fin")   
+"""
     
-    
-
-
-
 
 if __name__ == "__main__":
     main()

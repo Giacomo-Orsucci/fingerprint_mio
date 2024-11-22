@@ -168,6 +168,27 @@ def embed_fingerprints():
 
     #generate identical fingerprints
     fingerprints = generate_random_fingerprints(FINGERPRINT_SIZE, 1)
+    print("Dimensione fingerprints prima della modifica")
+    print(fingerprints.shape)
+    #The following commented lines of code are
+    #to try a variant to emdeb a fin that has been used in training and not
+
+    #the following has not been used
+    """
+    fingerprints = torch.tensor([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+                            1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+                            1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]).float().to(device)
+    """
+    #the following has been used
+    """
+    fingerprints = torch.tensor([0., 0., 1., 0., 1., 1., 0., 1., 0., 1., 0., 1., 1., 0., 0., 1., 0., 1.,
+        1., 1., 0., 1., 0., 0., 1., 1., 0., 0., 1., 0., 1., 1., 0., 1., 0., 1.,
+        1., 0., 1., 1., 0., 0., 0., 0., 1., 0., 0., 1., 0., 0., 0., 1., 0., 1.,
+        0., 0., 1., 1., 1., 0., 0., 1., 1., 1., 0., 1., 1., 0., 1., 0., 1., 0.,
+        1., 0., 1., 1., 0., 0., 1., 1., 1., 0., 0., 1., 1., 0., 0., 1., 1., 1.,
+        0., 1., 1., 1., 1., 1., 0., 0., 1., 1.]).float().to(device)
+    """
+
     
     fingerprints = fingerprints.view(1, FINGERPRINT_SIZE).expand(BATCH_SIZE, FINGERPRINT_SIZE) 
     print("Embedded fingerprint")
