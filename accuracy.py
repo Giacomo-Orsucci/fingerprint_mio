@@ -64,22 +64,31 @@ parser.add_argument(
 #Set the device
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-
+"""
 fingerprint = torch.tensor([0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,0,1,1,1,0,1,0,1,1,1,1,1,1,1,1,0,0,1,1,1,
                             0,1,0,0,0,0,0,1,1,1,1,1,0,1,1,0,1,0,1,0,1,1,0,0,0,0,0,0,0,0,1,1,0,1,1,1,1,
                             0,1,0,1,1,1,0,1,0,1,0,1,0,0,1,0,1,1,1,1,1,1,1,1,1,1,1,0]).to(device) #embedded fingerprint with seed 42
                     
 """
+"""
+
 fingerprint = torch.tensor([0,1,0,1,0,0,0,0,1,1,0,0,1,0,0,0,0,0,1,0,0,1,1,0,0,1,0,1,0,1,0,1,0,1,1,0,0,
                             0,0,0,1,1,1,0,1,1,1,0,1,0,1,1,1,0,0,0,1,0,1,1,0,0,0,1,0,1,1,1,0,1,1,1,0,1,
                             0,1,0,0,1,0,1,1,0,0,0,1,1,0,0,0,0,0,0,1,0,1,1,1,1,0]).to(device) #embedded fingerprint with seed 49
-      """                     
+"""
+                       
 
 """
 fingerprint = torch.tensor([0,0,1,1,0,0,0,0,0,1,0,1,1,1,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,
                             1,0,0,0,1,0,0,1,0,1,1,0,0,1,0,1,1,1,0,0,0,1,0,1,0,1,1,1,0,0,1,0,1,1,0,0,1,0,
                             0,1,1,0,0,1,1,0,0,1,0,0,0,1,0,1,1,1,0,0,0,0,0,0]).to(device) #embedded fingerprint with seed 75
 """
+
+
+
+fingerprint = torch.tensor([0,1,0,0,1,0,1,1,1,0,0,0,0,0,0,0,1,0,1,0,0,0,1,1,1,1,0,1,0,0,1,1,1,1,1,1,1,1,0,
+                            1,1,0,1,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0,0,1,1,1,1,0,1,0,1,
+                            0,1,1,1,1,0,1,0,0,0,0,1,0,0,0,1,1,1,1,0,0,1]).to(device) #embedded fingerprint with seed 42_3
 args = parser.parse_args()
 
 IMAGE_RESOLUTION = args.image_resolution
@@ -99,13 +108,16 @@ FINGERPRINT_SIZE = len(fingerprint)
 #image_directory='/media/giacomo/volume/yuv_base/test_fin_42'
 #image_directory='/media/giacomo/volume/test_yuv/test_a'
 #image_directory='/media/giacomo/volume/yuv_base/test_fin_75'
-image_directory='/media/giacomo/volume/yuv_base/stylegan2_gen_50k_config-e_75_seed42'
+#image_directory='/media/giacomo/volume/yuv_base/stylegan2_gen_50k_config-e_75_seed42'
+image_directory='/media/giacomo/volume/yuv_base/stylegan2_gen_50k_config-e_75_seed49'
+
 
 
 #the program is thought to make comparison beetwen different decoder and
 #fingerprinted datasets, but for the moment is not necessary this comparison
 
 #dec_path_pre = '/media/giacomo/volume/test_yuv/primo/checkpoints/dec.pth'
+#dec_path_pre = '/media/giacomo/volume/yuv_base/enc-dec/checkpoints/dec.pth'
 dec_path_pre = '/media/giacomo/volume/yuv_base/enc-dec/checkpoints/dec.pth'
 #dec_path_old = '/media/giacomo/volume/test_yuv/primo/checkpoints/dec.pth'
 #dec_path_new = '/media/giacomo/volume/test_yuv/primo/checkpoints/dec.pth'
