@@ -116,9 +116,9 @@ def generate_random_fingerprints(fingerprint_length, batch_size=4, size=(400, 40
 
     #use the following three lines of code to minimize the randomness
     #i use a seed to make the pseudo-random sequence generation everytime the same 
-    #torch.manual_seed(42)
-    #if torch.cuda.is_available():
-        #torch.cuda.manual_seed(42)
+    torch.manual_seed(42)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(42)
 
     z = torch.zeros((batch_size, fingerprint_length), dtype=torch.float).random_(0, 2)
     all_rand_fin.append(z)
@@ -241,7 +241,7 @@ def main():
 
     #we trained encoder and decoder for the specified number of epochs
     for i_epoch in range(args.num_epochs):
-
+        """
         #use the following ad default (original code)
         
         dataloader = DataLoader( #to perform the batch fetch
@@ -253,7 +253,7 @@ def main():
         dataloader = DataLoader( #to perform the batch fetch
             dataset, batch_size=args.batch_size, sampler=SequentialSampler(dataset), num_workers=16
         )
-        """
+        
 
         
         
