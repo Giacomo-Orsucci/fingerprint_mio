@@ -64,12 +64,12 @@ parser.add_argument(
 #Set the device
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-"""
+
 fingerprint = torch.tensor([0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,0,1,1,1,0,1,0,1,1,1,1,1,1,1,1,0,0,1,1,1,
                             0,1,0,0,0,0,0,1,1,1,1,1,0,1,1,0,1,0,1,0,1,1,0,0,0,0,0,0,0,0,1,1,0,1,1,1,1,
                             0,1,0,1,1,1,0,1,0,1,0,1,0,0,1,0,1,1,1,1,1,1,1,1,1,1,1,0]).to(device) #embedded fingerprint with seed 42
                     
-"""
+
 """
 
 fingerprint = torch.tensor([0,1,0,1,0,0,0,0,1,1,0,0,1,0,0,0,0,0,1,0,0,1,1,0,0,1,0,1,0,1,0,1,0,1,1,0,0,
@@ -85,10 +85,11 @@ fingerprint = torch.tensor([0,0,1,1,0,0,0,0,0,1,0,1,1,1,1,0,1,1,1,1,1,0,0,0,0,0,
 """
 
 
-
+"""
 fingerprint = torch.tensor([0,1,0,0,1,0,1,1,1,0,0,0,0,0,0,0,1,0,1,0,0,0,1,1,1,1,0,1,0,0,1,1,1,1,1,1,1,1,0,
                             1,1,0,1,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0,0,1,1,1,1,0,1,0,1,
                             0,1,1,1,1,0,1,0,0,0,0,1,0,0,0,1,1,1,1,0,0,1]).to(device) #embedded fingerprint with seed 42_3
+                            """
 args = parser.parse_args()
 
 IMAGE_RESOLUTION = args.image_resolution
@@ -109,7 +110,7 @@ FINGERPRINT_SIZE = len(fingerprint)
 #image_directory='/media/giacomo/volume/test_yuv/test_a'
 #image_directory='/media/giacomo/volume/yuv_base/test_fin_75'
 #image_directory='/media/giacomo/volume/yuv_base/stylegan2_gen_50k_config-e_75_seed42'
-image_directory='/media/giacomo/volume/yuv_base/stylegan2_gen_50k_config-e_75_seed49'
+image_directory='/media/giacomo/volume/yuv_norand/stylegan2_gen_50k_config-e_25'
 
 
 
@@ -118,7 +119,7 @@ image_directory='/media/giacomo/volume/yuv_base/stylegan2_gen_50k_config-e_75_se
 
 #dec_path_pre = '/media/giacomo/volume/test_yuv/primo/checkpoints/dec.pth'
 #dec_path_pre = '/media/giacomo/volume/yuv_base/enc-dec/checkpoints/dec.pth'
-dec_path_pre = '/media/giacomo/volume/yuv_base/enc-dec/checkpoints/dec.pth'
+dec_path_pre = '/media/giacomo/volume/yuv_norand/enc-dec/checkpoints/dec.pth' #dec_norand1
 #dec_path_old = '/media/giacomo/volume/test_yuv/primo/checkpoints/dec.pth'
 #dec_path_new = '/media/giacomo/volume/test_yuv/primo/checkpoints/dec.pth'
 
