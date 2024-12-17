@@ -37,13 +37,15 @@ parser.add_argument(
 #Set the device
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 """
-fingerprint = torch.tensor([0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,0,1,1,1,0,1,0,1,1,1,1,1,1,1,1,0,0,1,1,1,
-                            0,1,0,0,0,0,0,1,1,1,1,1,0,1,1,0,1,0,1,0,1,1,0,0,0,0,0,0,0,0,1,1,0,1,1,1,1,
-                            0,1,0,1,1,1,0,1,0,1,0,1,0,0,1,0,1,1,1,1,1,1,1,1,1,1,1,0]).to(device) #embedded fingerprint with seed 42
-"""
 fingerprint = torch.tensor([0,1,0,0,1,0,1,1,1,0,0,0,0,0,0,0,1,0,1,0,0,0,1,1,1,1,0,1,0,0,1,1,1,1,1,1,1,1,0,
                             1,1,0,1,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0,0,1,1,1,1,0,1,0,1,
-                            0,1,1,1,1,0,1,0,0,0,0,1,0,0,0,1,1,1,1,0,0,1]).to(device) #embedded fingerprint with seed 42_3
+                            0,1,1,1,1,0,1,0,0,0,0,1,0,0,0,1,1,1,1,0,0,1]).to(device) #embedded fingerprint that you are expecting to find (from seed=42_3 in this case)
+"""
+fingerprint = torch.tensor([0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,0,1,1,1,0,1,0,1,1,1,1,1,1,1,1,0,0,1,1,1,0,1,0,0,0,
+                            0,0,1,1,1,1,1,0,1,1,0,1,0,1,0,1,1,0,0,0,0,0,0,0,0,1,1,0,1,1,1,1,0,1,0,1,1,1,0,1,
+                            0,1,0,1,0,0,1,0,1,1,1,1,1,1,1,1,1,1,1,0]).to(device) #embedded fingerprint that you are expecting to find (from seed=42 in this case)
+
+
 
 
 
@@ -63,7 +65,7 @@ FINGERPRINT_SIZE = len(fingerprint)
 #image_directory = '/media/giacomo/volume/no_rand/stylegan2_gen_norand1_50k_config-e_25'
 #image_directory = '/media/giacomo/volume/test_100_gen'
 #image_directory='/media/giacomo/volume/no_rand/stylegan2_gen_50k_config-e_25_seed42_3'
-image_directory='/media/giacomo/volume/no_rand/celeba_I_meta_enc_1_norand_49/fingerprinted_images'
+image_directory='/media/giacomo/volume/new/celeba_tot_lastIHope/fingerprinted_images'
 #dec_path_pre = '/home/giacomo/Desktop/enc_dec_pretrained_celeba/dec.pth'
 #dec_path_old = '/media/giacomo/hdd_ubuntu/old/trained_byme/dec.pth'
 #dec_path_new = '/media/giacomo/hdd_ubuntu/new/dec.pth'
@@ -72,7 +74,7 @@ image_directory='/media/giacomo/volume/no_rand/celeba_I_meta_enc_1_norand_49/fin
 #dec_old
 dec_path_pre = '/media/giacomo/volume/old/trained_byme/dec.pth'
 #dec_norand_1
-dec_path_old = '/media/giacomo/volume/no_rand/enc-dec_1_20/checkpoints/dec.pth'
+dec_path_old = '/media/giacomo/volume/new/dec.pth'
 #dec_norand_2
 dec_path_new = '/media/giacomo/volume/no_rand/enc-dec_2_20/checkpoints/dec.pth'
 
@@ -110,8 +112,7 @@ for filename in os.listdir(image_directory):
     
     j = j+1
 
-    #if j==10:
-        #break;
+    #if j==10: break;
 
     print(j)
 
