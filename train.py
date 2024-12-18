@@ -59,6 +59,7 @@ parser.add_argument(
     default=1,
     help="BCE loss weight for fingerprint reconstruction.",
 )
+parser.add_argument("--seed", type=int, default=42, help="Random seed to sample fingerprints.")
 
 args = parser.parse_args()
 
@@ -106,15 +107,12 @@ if not os.path.exists(SAVED_IMAGES):
 
 all_rand_fin = []
 def generate_random_fingerprints(fingerprint_length, batch_size=4, size=(400, 400)):
-    #2 excluded, it creates a tensor of 0 and 1 with batch_size x fingerprint_size size
-    #use the following as default (original code)
-    #z = torch.zeros((batch_size, fingerprint_length), dtype=torch.float).random_(0, 2)
-
+    
     #use the following three lines of code to minimize the randomness
     #I use a seed to make the pseudo-random sequence generation the same for every batch
-    torch.manual_seed(42)
+    torch.manual_seed(args.seed)
     if torch.cuda.is_available():
-        torch.cuda.manual_seed(42)
+        torch.cuda.manual_seed(args.seed)
 
     z = torch.zeros((batch_size, fingerprint_length), dtype=torch.float).random_(0, 2)
     all_rand_fin.append(z)
@@ -150,7 +148,7 @@ class CustomImageFolder(Dataset):
         return len(self.filenames)
 
 #to load the dataset
-#applies all the preprocessing needed by celebA, if we are using it has dataset
+#applies all the preprocessing needed by celebA, if we are using it as dataset
 def load_data():
     global dataset, dataloader
     global IMAGE_CHANNELS, IMAGE_HEIGHT, IMAGE_WIDTH, SECRET_SIZE
@@ -184,14 +182,13 @@ def load_data():
     dataset = CustomImageFolder(args.data_dir, transform=transform)
     print(f"Finished. Loading took {time() - s:.2f}s")
 
-# Funzione per stampare i pesi e bias di ogni layer di un modello
 def print_model_weights(model):
     print(f"Stampa dei pesi del modello: {model.__class__.__name__}\n")
     
     for name, param in model.named_parameters():
         if param.requires_grad:
             print(f"Layer: {name}")
-            print(f"Pesi:\n{param.data}")  # Mostra i pesi del layer
+            print(f"Pesi:\n{param.data}") 
             print(f"Forma: {param.shape}\n")
             
 
@@ -219,13 +216,11 @@ def main():
     decoder = decoder.to(device)
 
 
-    # Stampiamo i pesi di tutti i layer dell'encoder
     print_model_weights(encoder)
 
-    #Stampiamo i pesi di tutti i layer del decoder
     print_model_weights(decoder)
 
-    #we have the combination of encoder and decoder to update simultaneously decoder and encoder
+    #we have the combination of encoder and decoder to update simultaneously both of them
     decoder_encoder_optim = Adam(
         params=list(decoder.parameters()) + list(encoder.parameters()), lr=args.lr
     )
@@ -234,23 +229,9 @@ def main():
     steps_since_l2_loss_activated = -1
 
 
-
-
-
-
-
-
     #we trained encoder and decoder for the specified number of epochs
     for i_epoch in range(args.num_epochs):
         
-        """
-        #use the following ad default (original code)
-        
-        dataloader = DataLoader( #to perform the batch fetch
-            dataset, batch_size=args.batch_size, shuffle=True, num_workers=16
-        )
-        """
-
         #use the following to minimize the randomization in image loading
         #the sequentialsampler is useful to reduce the randomness in the batches construction
         dataloader = DataLoader( #to perform the batch fetch
@@ -290,11 +271,11 @@ def main():
             l2_loss = criterion(fingerprinted_images, clean_images)
 
             criterion = nn.BCEWithLogitsLoss()
+
             #Binary Cross Entropy Loss
             BCE_loss = criterion(decoder_output.view(-1), fingerprints.view(-1))
             #the final mean is the averaged sum of the two losses
             loss = l2_loss_weight * l2_loss + BCE_loss_weight * BCE_loss
-
             
             #gradient put to zero, loss back-propagation and parameters update via optimizator
             encoder.zero_grad()
@@ -408,6 +389,7 @@ def main():
     """
     #the following code is to find a fingerprint used in training and if the fin below has been seen or not
     #in this way we can test the generalization in fingerprinting learnt by enc/dec
+    #I leave it here, in future it might be useful
 
 
     fingerprint = torch.tensor([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,

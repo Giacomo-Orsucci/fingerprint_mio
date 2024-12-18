@@ -6,7 +6,7 @@ from torch.nn.functional import relu, sigmoid
 
 class StegaStampEncoder(nn.Module):
 
-    #the following two to minimize the randomness
+    #the following two to minimize the randomness, set the seed that you prefer.
     torch.manual_seed(42)  # Seed for CPU
     torch.cuda.manual_seed(42)  # Seed for GPU, if you use CUDA
     

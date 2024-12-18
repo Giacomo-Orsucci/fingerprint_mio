@@ -56,10 +56,10 @@ from torchvision.utils import save_image
 
 def generate_random_fingerprints(fingerprint_size, batch_size=4):
     #2 excluded, it creates a tensor of 0 and 1 with batch_size x fingerprint_size size
-    #torch.manual_seed(64) #imposed only to experiment different fingerprints with same pair enc/dec
-    #torch.manual_seed(75)
-    torch.manual_seed(42)
+    torch.manual_seed(args.seed)
     i=0
+    #to use only if we want to embed a certain fin originated from the seed. Remember that the
+    #norand class perform well only on the fingerprints that enc/dec has seen in training (which number is determinated via the batch_size)
     #for i in range(3): #test on norand
     z = torch.zeros((batch_size, fingerprint_size), dtype=torch.float).random_(0, 2)
     return z
@@ -68,7 +68,6 @@ def generate_random_fingerprints(fingerprint_size, batch_size=4):
 uniform_rv = torch.distributions.uniform.Uniform(
     torch.tensor([0.0]), torch.tensor([1.0])
 )
-
 
 if int(args.cuda) == -1:
     device = torch.device("cpu")
@@ -170,31 +169,21 @@ def embed_fingerprints():
     fingerprints = generate_random_fingerprints(FINGERPRINT_SIZE, 1)
     print("Dimensione fingerprints prima della modifica")
     print(fingerprints.shape)
-    #The following commented lines of code are
-    #to try a variant to emdeb a fin that has been used in training and not
 
-    #the following has not been used
+    #this is an example to highlight how it is possible to fix manually a fingerprint instead of
+    #generating it casually
     """
     fingerprints = torch.tensor([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
                             1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
                             1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]).float().to(device)
     """
-    #the following has been used
-    """
-    fingerprints = torch.tensor([0., 0., 1., 0., 1., 1., 0., 1., 0., 1., 0., 1., 1., 0., 0., 1., 0., 1.,
-        1., 1., 0., 1., 0., 0., 1., 1., 0., 0., 1., 0., 1., 1., 0., 1., 0., 1.,
-        1., 0., 1., 1., 0., 0., 0., 0., 1., 0., 0., 1., 0., 0., 0., 1., 0., 1.,
-        0., 0., 1., 1., 1., 0., 0., 1., 1., 1., 0., 1., 1., 0., 1., 0., 1., 0.,
-        1., 0., 1., 1., 0., 0., 1., 1., 1., 0., 0., 1., 1., 0., 0., 1., 1., 1.,
-        0., 1., 1., 1., 1., 1., 0., 0., 1., 1.]).float().to(device)
-    """
-
     
+
     fingerprints = fingerprints.view(1, FINGERPRINT_SIZE).expand(BATCH_SIZE, FINGERPRINT_SIZE) 
-    print("Embedded fingerprint")
-    print(fingerprints.shape)
-    for fin in fingerprints:
-        print(fin)
+    #print("Embedded fingerprint")
+    #print(fingerprints.shape)
+    #for fin in fingerprints:
+        #print(fin)
     fingerprints = fingerprints.to(device)
 
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
@@ -214,14 +203,14 @@ def embed_fingerprints():
         images = images.to(device)
 
         fingerprinted_images = HideNet(fingerprints[: images.size(0)], images)
-        all_fingerprinted_images.append(fingerprinted_images.detach().cpu()) #leviamo le immagini firmate da ulteriori calcoli e le portiamo sulla CPU
+        all_fingerprinted_images.append(fingerprinted_images.detach().cpu()) 
         all_fingerprints.append(fingerprints[: images.size(0)].detach().cpu())
 
         if args.check:
             detected_fingerprints = RevealNet(fingerprinted_images)
             detected_fingerprints = (detected_fingerprints > 0).long()
             
-            #to calculate the accuracy in retrieving the fingerprint (eventually perturbated)
+            #to calculate the accuracy in retrieving the fingerprint 
             bitwise_accuracy += (detected_fingerprints[: images.size(0)].detach() == fingerprints[: images.size(0)]).float().mean(dim=1).sum().item()
 
 
@@ -247,7 +236,7 @@ def embed_fingerprints():
 
 
     if args.check:
-        bitwise_accuracy = bitwise_accuracy / len(all_fingerprints) #calcola l'accuratezza generale
+        bitwise_accuracy = bitwise_accuracy / len(all_fingerprints) #calculate the overall accuracy if the option check is set
         print(f"Bitwise accuracy on fingerprinted images: {bitwise_accuracy}")
         #save the first 49 images organized in rows of 7 elements
         save_image(images[:49], os.path.join(args.output_dir, "test_samples_clean.png"), nrow=7)

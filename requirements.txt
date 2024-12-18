@@ -1,4 +1,0 @@
-tqdm
-torch
-torchvision
-tensorboardX
