@@ -122,15 +122,15 @@ def extract_fingerprints():
 
             yuv_image = cv2.cvtColor(image, cv2.COLOR_RGB2YUV)
 
-            # Estrai il canale Y
+            #to extract y channel
             y_channel, _, _ = cv2.split(yuv_image)
             y_tensor = torch.from_numpy(y_channel).unsqueeze(0).float()
             app.append(y_tensor)
 
        
         images_y_batch = torch.stack(app).to(device)
-        print("Size di batch")
-        print(images_y_batch.shape)
+        #print("Batch size")
+        #print(images_y_batch.shape)
         images = images_y_batch
         
         fingerprints = RevealNet(images)

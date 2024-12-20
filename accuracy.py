@@ -22,9 +22,12 @@ transform = transforms.Compose([
 ])
 
 
-#program to evaluate the accuracy on a set of images already generated
-#experimentally the accuracy that we have in this way is slightly different (+-0.005) on the total
-#if we compare it with the accuracy obtained from a set of images generated and directly analized without saving them before
+#Program to evaluate the accuracy on a set of images already generated.
+#Experimentally the accuracy that we have in this way is slightly different (+-0.005) on the total
+#if we compare it with the accuracy obtained from a set of images generated and directly analized without saving them before.
+#Something is parametrized from console and something not. The reason is that the code is freely accessible 
+#and something was better to be modified in the code that parametrized. So, the suggestion is to read the code
+#and to modify manually the highlighted paths and variables depending on your necessities.
 
 
 
@@ -48,15 +51,6 @@ class CustomImageFolder():
     def __len__(self):
         return len(self.filenames)
 
-
-"""
-parser.add_argument(
-    "--decoder_path",
-    type=str,
-    help="Provide trained StegaStamp decoder to verify fingerprint detection accuracy.",
-)
-"""
-
 parser.add_argument(
     "--image_resolution", type=int, help="Height and width of square images."
 )
@@ -64,26 +58,12 @@ parser.add_argument(
 #Set the device
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-
+#Example of fingerprints that we except to be embedded and obtained from the generated images.
+#The fingerprint here defined is used to calculate the accuracy.
 fingerprint = torch.tensor([0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,0,1,1,1,0,1,0,1,1,1,1,1,1,1,1,0,0,1,1,1,
                             0,1,0,0,0,0,0,1,1,1,1,1,0,1,1,0,1,0,1,0,1,1,0,0,0,0,0,0,0,0,1,1,0,1,1,1,1,
                             0,1,0,1,1,1,0,1,0,1,0,1,0,0,1,0,1,1,1,1,1,1,1,1,1,1,1,0]).to(device) #embedded fingerprint with seed 42
                     
-
-"""
-
-fingerprint = torch.tensor([0,1,0,1,0,0,0,0,1,1,0,0,1,0,0,0,0,0,1,0,0,1,1,0,0,1,0,1,0,1,0,1,0,1,1,0,0,
-                            0,0,0,1,1,1,0,1,1,1,0,1,0,1,1,1,0,0,0,1,0,1,1,0,0,0,1,0,1,1,1,0,1,1,1,0,1,
-                            0,1,0,0,1,0,1,1,0,0,0,1,1,0,0,0,0,0,0,1,0,1,1,1,1,0]).to(device) #embedded fingerprint with seed 49
-"""
-                       
-
-"""
-fingerprint = torch.tensor([0,0,1,1,0,0,0,0,0,1,0,1,1,1,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,
-                            1,0,0,0,1,0,0,1,0,1,1,0,0,1,0,1,1,1,0,0,0,1,0,1,0,1,1,1,0,0,1,0,1,1,0,0,1,0,
-                            0,1,1,0,0,1,1,0,0,1,0,0,0,1,0,1,1,1,0,0,0,0,0,0]).to(device) #embedded fingerprint with seed 75
-"""
-
 
 """
 fingerprint = torch.tensor([0,1,0,0,1,0,1,1,1,0,0,0,0,0,0,0,1,0,1,0,0,0,1,1,1,1,0,1,0,0,1,1,1,1,1,1,1,1,0,
@@ -98,59 +78,23 @@ IMAGE_CHANNELS = 1
 
 FINGERPRINT_SIZE = len(fingerprint)
 
-
-#image_directory = '/media/giacomo/hdd_ubuntu/test_yuv/celeba'
-#image_directory='/media/giacomo/hdd_ubuntu/test_yuv/test_celeab/fingerprinted_images'
-#image_directory='/media/giacomo/volume/test_yuv/test'
-#image_directory='/media/giacomo/volume/test_yuv/robustness/gau_noise_std_0-100_style2_25_50k/0'
-#image_directory='/media/giacomo/volume/yuv_base/test'
-#image_directory='/media/giacomo/volume/yuv_base/stylegan2_gen_50k_config-e_25_seed49'
-#image_directory='/media/giacomo/volume/yuv_base/prova_42_dataset'
-#image_directory='/media/giacomo/volume/yuv_base/test_fin_42'
-#image_directory='/media/giacomo/volume/test_yuv/test_a'
-#image_directory='/media/giacomo/volume/yuv_base/test_fin_75'
-#image_directory='/media/giacomo/volume/yuv_base/stylegan2_gen_50k_config-e_75_seed42'
-image_directory='/media/giacomo/volume/yuv_norand/stylegan2_gen_50k_config-e_25'
+#insert the path with the generated images to decode
+image_directory=''
 
 
 
-#the program is thought to make comparison beetwen different decoder and
-#fingerprinted datasets, but for the moment is not necessary this comparison
+#here we don't test and compares three decoders, but only one. Anyway, it is possible to replicate
+#the comparison from the others branches 
 
-#dec_path_pre = '/media/giacomo/volume/test_yuv/primo/checkpoints/dec.pth'
-#dec_path_pre = '/media/giacomo/volume/yuv_base/enc-dec/checkpoints/dec.pth'
-dec_path_pre = '/media/giacomo/volume/yuv_norand/enc-dec/checkpoints/dec.pth' #dec_norand1
-#dec_path_old = '/media/giacomo/volume/test_yuv/primo/checkpoints/dec.pth'
-#dec_path_new = '/media/giacomo/volume/test_yuv/primo/checkpoints/dec.pth'
+dec1 = ''
 
-RevealNet_pre = StegaStampDecoder( #decoder and parameters passing
+RevealNet_dec1 = StegaStampDecoder( #decoder and parameters passing
         IMAGE_RESOLUTION, IMAGE_CHANNELS, fingerprint_size=FINGERPRINT_SIZE
     )
-RevealNet_pre.load_state_dict(torch.load(dec_path_pre))
-RevealNet_pre = RevealNet_pre.to(device)
-RevealNet_pre.eval()
+RevealNet_dec1.load_state_dict(torch.load(dec1))
+RevealNet_dec1 = RevealNet_dec1.to(device)
+RevealNet_dec1.eval()
 
-"""
-RevealNet_old = StegaStampDecoder( #decoder and parameters passing
-        IMAGE_RESOLUTION, IMAGE_CHANNELS, fingerprint_size=FINGERPRINT_SIZE
-    )
-RevealNet_old.load_state_dict(torch.load(dec_path_old))
-RevealNet_old = RevealNet_old.to(device)
-RevealNet_old.eval()
-
-
-RevealNet_new = StegaStampDecoder( #decoder and parameters passing
-        IMAGE_RESOLUTION, IMAGE_CHANNELS, fingerprint_size=FINGERPRINT_SIZE
-    )
-RevealNet_new.load_state_dict(torch.load(dec_path_new))
-RevealNet_new = RevealNet_new.to(device)
-RevealNet_new.eval()
-
-
-bitwise_accuracy_pre = 0
-bitwise_accuracy_old = 0
-bitwise_accuracy_new = 0
-"""
 
 bitwise_accuracy = 0;
 
@@ -167,20 +111,18 @@ for images, _ in tqdm(dataloader):
 
     for image in images:
         image = image.permute(1, 2, 0).cpu().numpy()
-        print("Singola immagine")
-        print(image.shape)
+        #print("Single image")
+        #print(image.shape)
         #image = (image * 255).astype(np.uint8)
 
-        # Converti l'immagine RGB in YUV usando OpenCV
+        #from RGB to YUV
         image_yuv = cv2.cvtColor(image, cv2.COLOR_RGB2YUV)
         #print(image_yuv)
         y_channel, u_channel, v_channel = cv2.split(image_yuv)
         image = y_channel
         image = torch.from_numpy(image).unsqueeze(0)
-        print("shape di image")
-        print(image.shape)
-
-        
+        #print("image shape")
+        #print(image.shape)
         y_channel_list.append(image)
     
     images_y_batch = torch.stack(y_channel_list).to(device)
@@ -190,7 +132,7 @@ for images, _ in tqdm(dataloader):
     print(images_y_batch.shape)
 
 
-    detected_fingerprints = RevealNet_pre(images_y_batch)
+    detected_fingerprints = RevealNet_dec1(images_y_batch)
     detected_fingerprints = (detected_fingerprints > 0).long()
 
     print("detected fingerprint")

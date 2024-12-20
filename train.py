@@ -111,15 +111,6 @@ if not os.path.exists(SAVED_IMAGES):
 all_rand_fin = []
 def generate_random_fingerprints(fingerprint_length, batch_size=4, size=(400, 400)):
     #2 excluded, it creates a tensor of 0 and 1 with batch_size x fingerprint_size size
-    #use the following as default (original code)
-    #z = torch.zeros((batch_size, fingerprint_length), dtype=torch.float).random_(0, 2)
-
-    #use the following three lines of code to minimize the randomness
-    #i use a seed to make the pseudo-random sequence generation everytime the same 
-    torch.manual_seed(42)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed(42)
-
     z = torch.zeros((batch_size, fingerprint_length), dtype=torch.float).random_(0, 2)
     all_rand_fin.append(z)
 
@@ -188,21 +179,20 @@ def load_data():
     dataset = CustomImageFolder(args.data_dir, transform=transform)
     print(f"Finished. Loading took {time() - s:.2f}s")
 
-# Funzione per stampare i pesi e bias di ogni layer di un modello
 def print_model_weights(model):
     print(f"Stampa dei pesi del modello: {model.__class__.__name__}\n")
     
     for name, param in model.named_parameters():
         if param.requires_grad:
             print(f"Layer: {name}")
-            print(f"Pesi:\n{param.data}")  # Mostra i pesi del layer
+            print(f"Pesi:\n{param.data}")  
             print(f"Forma: {param.shape}\n")
             
 
 
 def main():
     now = datetime.now()
-    dt_string = now.strftime("%d%m%Y_%H:%M:%S") #to formate the datetime
+    dt_string = now.strftime("%d%m%Y_%H:%M:%S") #to format the datetime
     EXP_NAME = f"stegastamp_{args.fingerprint_length}_{dt_string}" #to concatenate the info retrieved
 
     device = torch.device("cuda")
@@ -223,11 +213,9 @@ def main():
     decoder = decoder.to(device)
 
 
-    # Stampiamo i pesi di tutti i layer dell'encoder
-    print_model_weights(encoder)
+    #print_model_weights(encoder)
 
-    #Stampiamo i pesi di tutti i layer del decoder
-    print_model_weights(decoder)
+    #print_model_weights(decoder)
 
     #we have the combination of encoder and decoder to update simultaneously decoder and encoder
     decoder_encoder_optim = Adam(
@@ -241,22 +229,13 @@ def main():
 
     #we trained encoder and decoder for the specified number of epochs
     for i_epoch in range(args.num_epochs):
-        """
-        #use the following ad default (original code)
+        
+       
         
         dataloader = DataLoader( #to perform the batch fetch
             dataset, batch_size=args.batch_size, shuffle=True, num_workers=16
         )
-        """
-        #use the following instead the above to minimize the randomization in image loading
-        #the sequentialsampler is useful to reduce the randomness in the batches construction
-        dataloader = DataLoader( #to perform the batch fetch
-            dataset, batch_size=args.batch_size, sampler=SequentialSampler(dataset), num_workers=16
-        )
-        
-
-        
-        
+       
         for images, _ in tqdm(dataloader): #generates a casual fingerprint for every batch 
             global_step += 1
             #print(images.shape)
@@ -268,30 +247,13 @@ def main():
                 
                 # transpose from (3, 128, 128) to (128, 128, 3) to visualize the image properly.
                 image_rgb = np.transpose(image, (1, 2, 0))
-                #plt.imshow(image_rgb)
-                #plt.title("Test")
-                #plt.show()
-
                 image_rgb = np.array(image_rgb)
                 image_yuv =  cv2.cvtColor(image_rgb, cv2.COLOR_RGB2YUV)
 
                 # to split the image in it's Y, U and V channels
                 y_channel, u_channel, v_channel = cv2.split(image_yuv)
 
-                # setting U and V to 0 to create an image with only the Y channel
-                #u_zero = np.zeros_like(u_channel)
-                #v_zero = np.zeros_like(v_channel)
-
-                #image_y_only = cv2.merge([y_channel, u_zero, v_zero])
-
-                # conversion from YUV to RGB to visualize the image
-                #image_gray = cv2.cvtColor(image_y_only, cv2.COLOR_YUV2RGB)
-
                 y_channel_only = np.expand_dims(y_channel, axis=2) #from (128,128) to (128, 128, 1)
-
-                #plt.imshow(y_channel_only)
-                #plt.title('Immagine con solo canale Y (Luminanza)')
-                #plt.show()
 
                 image = torch.from_numpy(y_channel_only)
                 image = np.transpose(image, (2, 0, 1))
