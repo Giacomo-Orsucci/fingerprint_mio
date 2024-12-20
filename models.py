@@ -6,7 +6,7 @@ from torch.nn.functional import relu, sigmoid
 
 class StegaStampEncoder(nn.Module):
 
-
+    #please, set the interested seed manually
     torch.manual_seed(42)  # Seed for CPU
     torch.cuda.manual_seed(42)  # Seed for GPU, if you use CUDA
     

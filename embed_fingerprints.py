@@ -61,10 +61,17 @@ from torchvision.utils import save_image
 def generate_random_fingerprints(fingerprint_size, batch_size=4):
     #2 excluded, it creates a tensor of 0 and 1 with batch_size x fingerprint_size size
     
-    torch.manual_seed(42) #to fix the fingerprint
-    i=0
-    for i in range(3): #test on yuv_norand
-        z = torch.zeros((batch_size, fingerprint_size), dtype=torch.float).random_(0, 2)
+    #to fix the fingerprints during the embedding process.
+    torch.manual_seed(args.seed) #to fix the fingerprint
+
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(args.seed)
+   
+   #uncomment the two following lines to use the fingerprint that you want and that is originated from the fixed seed
+    
+    #i=0
+    #for i in range(3): #test on yuv_norand
+    z = torch.zeros((batch_size, fingerprint_size), dtype=torch.float).random_(0, 2)
     return z
 
 #generate a uniform distribution
@@ -81,8 +88,8 @@ else:
 torch.cuda.empty_cache()
 
     
-print("Device used: ")
-print(device)
+#print("Device used: ")
+#print(device)
 
 class CustomImageFolder(Dataset):
     def __init__(self, data_dir, transform=None):
@@ -185,7 +192,6 @@ def embed_fingerprints():
     bitwise_accuracy = 0
 
     for images, _ in tqdm(dataloader):
-
         #generate arbitrary fingerprints
         if not args.identical_fingerprints:
             fingerprints = generate_random_fingerprints(FINGERPRINT_SIZE, BATCH_SIZE)
@@ -204,58 +210,25 @@ def embed_fingerprints():
                 
             # transpose from (3, 128, 128) to (128, 128, 3) to visualize the image properly.
             image_rgb = np.transpose(image.cpu().numpy(), (1, 2, 0))
-
-            #image_rgb = np.transpose(image, (1, 2, 0))
-            
-            """
-            plt.imshow(image_rgb)
-            plt.title("Test")
-            plt.show()
-            """
-
             image_rgb = np.array(image_rgb)
             image_yuv =  cv2.cvtColor(image_rgb, cv2.COLOR_RGB2YUV)
 
-            # to split the image in it's Y, U and V channels
+            #to split the image in it's Y, U and V channels
             y_channel, u_channel, v_channel = cv2.split(image_yuv)
 
             u.append(u_channel)
             v.append(v_channel)
 
-            
-            # setting U and V to 0 to create an image with only the Y channel
-            #u_zero = np.zeros_like(u_channel)
-            #v_zero = np.zeros_like(v_channel)
-
-            #image_y_only = cv2.merge([y_channel, u_zero, v_zero])
-
-            # conversion from YUV to RGB to visualize the image
-            #image_gray = cv2.cvtColor(image_y_only, cv2.COLOR_YUV2RGB)
-
             y_channel_only = np.expand_dims(y_channel, axis=2) #from (128,128) to (128, 128, 1)
-
-            #plt.imshow(y_channel_only)
-            #plt.title('Immagine con solo canale Y (Luminanza)')
-            #plt.show()
 
             image = torch.from_numpy(y_channel_only)
             image = np.transpose(image, (2, 0, 1)) #from (128,128,1) a (1,128,128)
             new_images.append(image)
-            #print(image.shape)
 
         new_images = torch.stack(new_images)
         images = new_images
         images = images.to(device)
-
-
-
-
-        
-        
         fingerprinted_images = HideNet(fingerprints[: images.size(0)], images) #fingerprinted on luminance (y)
-
-        #print("shape")
-        #print(fingerprinted_images.shape)
         
 
         if args.check:
@@ -274,69 +247,21 @@ def embed_fingerprints():
         new_fingerprinted_images = torch.empty((0, 3, 128, 128)).to(device)
         for i, fin_image in enumerate(fingerprinted_images):
             
-            """
-            print("dim di fin_image")
-            print(fin_image.shape)
-            plt.imshow(np.transpose(fin_image.cpu().detach(), (1, 2, 0)))
-            plt.title("Test")
-            plt.show()
-            """
 
             u_app = np.expand_dims(u[i], axis=2)
             v_app = np.expand_dims(v[i], axis=2)
 
-            #u_app = torch.from_numpy(u_app)
-            #v_app = torch.from_numpy(v_app)
-
             fin_image = np.transpose(fin_image.cpu().detach().numpy(), (1, 2, 0))
-
-            #fin_image = torch.from_numpy(fin_image).to(device)
-
-
-
-            #print(fin_image.shape)
-            #print(u_app.shape)
-            #print(v_app.shape)
-            
             final_image = np.concatenate((fin_image, u_app, v_app),2)
-            #final_image = torch.cat((fin_image, u_app.to(device), v_app.to(device)), dim=2)
-          
-            """
-            print("dim di final_image")
-            print(final_image.shape)
-            plt.imshow(final_image)
-            plt.title("Test")
-            plt.show()
-            """
-
-            
             final_image = cv2.cvtColor(final_image, cv2.COLOR_YUV2RGB)
-            
-
-            """
-            print("dim di final_image")
-            print(final_image.shape)
-            plt.imshow(final_image)
-            plt.title("Test")
-            plt.show()
-            """
-            
-
             final_image = np.transpose(final_image, (2, 0, 1)) #from (128,128,1) a (1,128,128)
             final_image = torch.from_numpy(final_image).to(device)
 
             
 
-             # Aggiungi final_image a fingerprinted_images
+            #add final_image to fingerprinted_images
             new_fingerprinted_images = torch.cat((new_fingerprinted_images, final_image.unsqueeze(0)), dim=0)
             
-            #new_fingerprinted_images.append(final_image)
-            #print(new_fingerprinted_images.size)
-            #new_fingerprinted_images = torch.tensor(new_fingerprinted_images).to(device)
-
-        #fingerprinted_images = new_fingerprinted_images
-        #print("Dimensioni vettore finale")
-        #print(fingerprinted_images.shape)
         fingerprinted_images = new_fingerprinted_images
 
 
@@ -368,7 +293,7 @@ def embed_fingerprints():
 
 
     if args.check:
-        bitwise_accuracy = bitwise_accuracy / len(all_fingerprints) #calcola l'accuratezza generale
+        bitwise_accuracy = bitwise_accuracy / len(all_fingerprints) #compute the general accuracy
         print(f"Bitwise accuracy on fingerprinted images: {bitwise_accuracy}")
         #save the first 49 images organized in rows of 7 elements
         save_image(images[:49], os.path.join(args.output_dir, "test_samples_clean.png"), nrow=7)
