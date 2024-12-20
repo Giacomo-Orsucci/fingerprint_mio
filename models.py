@@ -5,10 +5,6 @@ from torch.nn.functional import relu, sigmoid
 
 
 class StegaStampEncoder(nn.Module):
-
-    #the following two to minimize the randomness
-    torch.manual_seed(42)  # Seed for CPU
-    torch.cuda.manual_seed(42)  # Seed for GPU, if you use CUDA
     
     def __init__( #encoder constructor (embeds the fingerprint)
         self,
@@ -115,7 +111,7 @@ class StegaStampEncoder(nn.Module):
         conv10 = relu(self.conv10(conv9))
         residual = self.residual(conv10)
         
-        #if the residual image is not returned, we apply a sigmoid function (s shaped )
+        #if the residual image is not returned, we apply a sigmoid function (s shaped)
         #to grant that the output is beetwen 0 and 1
         if not self.return_residual:
             residual = sigmoid(residual)
