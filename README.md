@@ -1,3 +1,6 @@
+## IMPORTANT
+This is a copy of the original work (original description, authors and acknowledgements are reported in the following) with little arrangments made by me for my thesis research work. This repository is part of the group _mio, that is a collection of code part of my thesis work.
+
 # Artificial GAN Fingerprints
 
 ### [Artificial Fingerprinting for Generative Models: Rooting Deepfake Attribution in Training Data](https://arxiv.org/pdf/2007.08457.pdf)
